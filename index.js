@@ -1,14 +1,13 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { execute } = require(`./deploy-commands.js`);
-const { ptest } = require("./prefix-commands/ptest.js");
 require("dotenv").config();
+
 const {
   Client,
   Collection,
   Events,
   GatewayIntentBits,
-  EmbedBuilder,
   IntentsBitField,
 } = require("discord.js");
 const token = process.env.token;
@@ -22,16 +21,18 @@ const client = new Client({
   ],
 });
 
+const prefix = "~";
+
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, "commands");
 const commandFolders = fs.readdirSync(foldersPath);
-const prefix = "~";
 
 for (const folder of commandFolders) {
   const commandsPath = path.join(foldersPath, folder);
   const commandFiles = fs
     .readdirSync(commandsPath)
     .filter((file) => file.endsWith(".js"));
+
   for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
     const command = require(filePath);
@@ -76,8 +77,26 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
 client.on("messageCreate", (message) => {
   if (message.author.bot) return; // ignore bot messages
-  ptest(message, prefix);
+  if (message.content[0] === prefix) prefixMessageHandler(message);
 });
+
+function prefixMessageHandler(message) {
+  const prefixFoldersPath = path.join(__dirname, "prefix-commands");
+  const prefixCommandFiles = fs
+    .readdirSync(prefixFoldersPath)
+    .filter((file) => file.endsWith(".js"));
+  //The filename must match the command
+  const fileForMessage = message.content.substring(1) + ".js";
+
+  if (!prefixCommandFiles.includes(fileForMessage)) {
+    const commandUnRec = require("./prefix-commands/command-unrecognized.js");
+    commandUnRec.prefixMessage(message, prefix);
+  } else {
+    const filePath = path.join(prefixFoldersPath, fileForMessage);
+    const command = require(`${filePath}`);
+    command.prefixMessage(message, prefix);
+  }
+}
 
 client.login(token);
 execute();
