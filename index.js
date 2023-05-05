@@ -22,6 +22,8 @@ const client = new Client({
 });
 
 const prefix = "~";
+const commandUnRec = require("./prefix-commands/command-unrecognized.js");
+const badList = require("./prefix-commands/bad-list.js");
 
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, "commands");
@@ -78,6 +80,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
 client.on("messageCreate", (message) => {
   if (message.author.bot) return; // ignore bot messages
   if (message.content[0] === prefix) prefixMessageHandler(message);
+  badList.badMessage(message);
 });
 
 function prefixMessageHandler(message) {
@@ -89,7 +92,8 @@ function prefixMessageHandler(message) {
   const fileForMessage = message.content.substring(1) + ".js";
 
   if (!prefixCommandFiles.includes(fileForMessage)) {
-    const commandUnRec = require("./prefix-commands/command-unrecognized.js");
+    console.log(message.author.username);
+    console.log(`[WARNING] The command  ${message.content} not exist.`);
     commandUnRec.prefixMessage(message, prefix);
   } else {
     const filePath = path.join(prefixFoldersPath, fileForMessage);
