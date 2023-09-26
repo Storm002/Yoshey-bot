@@ -5,8 +5,7 @@ module.exports = {
     // prfixMessageCall should be for all messages
     const unrecognized = new EmbedBuilder()
       .setColor("#FF0000")
-      .setTitle(`Command < ${message.content} > unrecognized!`)
-      .setTimestamp();
+      .setTitle(`Command < ${message.content} > unrecognized!`);
     message.channel.send({ embeds: [unrecognized] });
   },
 };

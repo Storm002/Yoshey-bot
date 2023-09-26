@@ -80,7 +80,24 @@ client.on(Events.InteractionCreate, async (interaction) => {
 client.on("messageCreate", (message) => {
   if (message.author.bot) return; // ignore bot messages
   if (message.content[0] === prefix) prefixMessageHandler(message);
-  badList.badMessage(message);
+
+  const newMsgUserId = message.author.id;
+  message.channel.messages
+    .fetch()
+    .then((res) => {
+      const messageArray = Array.from(res.values());
+      const messagesFromUser = messageArray.filter(
+        (msg) => msg.author.id === newMsgUserId
+      );
+      const prevMsg = messagesFromUser[1];
+
+      // console.log("RES   ", messagesFromUser);
+      badList.badMessage(message, prevMsg);
+    })
+    .catch((err) => console.log(err));
+
+  // Get the previous message (index 0 is the most recent, index 1 is the previous)
+  // const previousMessage = messages.array()[1];
 });
 
 function prefixMessageHandler(message) {
