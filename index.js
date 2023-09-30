@@ -4,6 +4,8 @@ const { execute } = require(`./deploy-commands.js`);
 require("dotenv").config();
 const { getById, getAll, set, remove } = require("./sql-db.js");
 
+const mongoUrl = `mongodb+srv://halfwatchesmom:${process.env.MONGO_PASW}@cluster0.wud6pmq.mongodb.net/`;
+console.log(mongoUrl);
 const {
   Client,
   Collection,
