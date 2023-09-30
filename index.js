@@ -2,6 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { execute } = require(`./deploy-commands.js`);
 require("dotenv").config();
+const { getById, getAll, set, remove } = require("./sql-db.js");
 
 const {
   Client,
@@ -34,6 +35,7 @@ for (const folder of commandFolders) {
   const commandFiles = fs
     .readdirSync(commandsPath)
     .filter((file) => file.endsWith(".js"));
+  console.log("commanrs: ", commandFiles);
 
   for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
@@ -53,10 +55,11 @@ client.once(Events.ClientReady, () => {
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {
+  console.log("interaction: ", interaction);
   if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
-
+  console.log("comm: ", client);
   if (!command) return;
 
   try {
@@ -77,24 +80,55 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
-client.on("messageCreate", (message) => {
+client.on("messageCreate", async (message) => {
   if (message.author.bot) return; // ignore bot messages
   if (message.content[0] === prefix) prefixMessageHandler(message);
+  let points;
+  let msgId;
+  let msgTime;
+  try {
+    const user = await getById(message.author.id);
+    if (user) {
+      console.log(message.createdTimestamp - user[0].last_points_msg_time);
+      if (message.createdTimestamp - user[0].last_points_msg_time > 10000) {
+        points = user[0].points + 10;
+        msgId = message.id;
+        msgTime = message.createdTimestamp;
+      } else {
+        points = user[0].points;
+        msgId = user[0].last_points_msg_id;
+        msgTime = user[0].last_points_msg_time;
+      }
+    } else {
+      points = 10;
+      msgId = message.id;
+      msgTime = message.createdTimestamp;
+    }
+    await set(
+      message.author.id,
+      message.author.username,
+      points,
+      msgId,
+      msgTime
+    );
+  } catch (e) {
+    console.log(e.message);
+  }
 
-  const newMsgUserId = message.author.id;
-  message.channel.messages
-    .fetch()
-    .then((res) => {
-      const messageArray = Array.from(res.values());
-      const messagesFromUser = messageArray.filter(
-        (msg) => msg.author.id === newMsgUserId
-      );
-      const prevMsg = messagesFromUser[1];
-
-      // console.log("RES   ", messagesFromUser);
-      badList.badMessage(message, prevMsg);
-    })
-    .catch((err) => console.log(err));
+  // const newMsgUserId = message.author.id;
+  // message.channel.messages
+  //   .fetch()
+  //   .then((res) => {
+  //     const messageArray = Array.from(res.values());
+  //     const messagesFromUser = messageArray.filter(
+  //       (msg) => msg.author.id === newMsgUserId
+  //     );
+  //     const prevMsg = messagesFromUser[1];
+  //     // console.log("msg: ", message);
+  //     // console.log("RES   ", messagesFromUser);
+  //     badList.badMessage(message, messagesFromUser);
+  //   })
+  //   .catch((err) => console.log(err));
 
   // Get the previous message (index 0 is the most recent, index 1 is the previous)
   // const previousMessage = messages.array()[1];

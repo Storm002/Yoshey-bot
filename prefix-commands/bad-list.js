@@ -2,14 +2,13 @@ const { EmbedBuilder } = require("discord.js");
 
 module.exports = {
   badMessage(message, prevMsg) {
-    console.log(prevMsg.content, prevMsg.createdTimestamp);
-    console.log(message.content, message.createdTimestamp);
-    console.log(message.createdTimestamp - prevMsg.createdTimestamp);
-    console.log(
-      message.createdTimestamp - prevMsg.createdTimestamp > 10000
-        ? "True"
-        : "False"
-    );
+    // console.log(prevMsg.content, prevMsg.createdTimestamp);
+    // console.log(message.content, message.createdTimestamp);
+    // console.log(message.createdTimestamp - prevMsg.createdTimestamp);
+    // if (message.createdTimestamp - prevMsg[1].createdTimestamp > 10000) {
+    //   return true;
+    // } else {
+    // }
 
     const badList = [
       "fuck",
