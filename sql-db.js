@@ -11,6 +11,7 @@ async function prepare() {
       points INT NOT NULL,
       last_points_msg_id INT NOT NULL,
       last_points_msg_time INT,
+      rank INT NOT NULL, 
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
@@ -22,14 +23,15 @@ async function set(
   user_name,
   points,
   last_points_msg_id,
-  last_points_msg_time
+  last_points_msg_time,
+  rank
 ) {
   await prepared;
   await db.query(sql`
-    INSERT INTO user_points (user_id, user_name, points, last_points_msg_id, last_points_msg_time)
-      VALUES (${user_id}, ${user_name}, ${points}, ${last_points_msg_id}, ${last_points_msg_time})
+    INSERT INTO user_points (user_id, user_name, points, last_points_msg_id, last_points_msg_time, rank)
+      VALUES (${user_id}, ${user_name}, ${points}, ${last_points_msg_id}, ${last_points_msg_time}, ${rank})
       ON CONFLICT (user_id) DO UPDATE
-      SET points=excluded.points, last_points_msg_id=excluded.last_points_msg_id, last_points_msg_time=excluded.last_points_msg_time;
+      SET points=excluded.points, last_points_msg_id=excluded.last_points_msg_id, last_points_msg_time=excluded.last_points_msg_time, rank=excluded.rank;
   `);
 }
 
