@@ -59,7 +59,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const command = client.commands.get(interaction.commandName);
-  console.log("comm: ", client);
   if (!command) return;
 
   try {
@@ -86,11 +85,24 @@ client.on("messageCreate", async (message) => {
   let points;
   let msgId;
   let msgTime;
+  let rank;
   try {
     const user = await getById(message.author.id);
     if (user) {
       console.log(message.createdTimestamp - user[0].last_points_msg_time);
-      if (message.createdTimestamp - user[0].last_points_msg_time > 10000) {
+      console.log(user[0].points);
+      user[0].points >= 100 && user[0].points < 200
+        ? (rank = 1)
+        : user[0].points >= 200 && user[0].points < 300
+        ? (rank = 2)
+        : user[0].points >= 300 && user[0].points < 400
+        ? (rank = 3)
+        : user[0].points >= 400 && user[0].points < 500
+        ? (rank = 4)
+        : user[0].points >= 500
+        ? (rank = 5)
+        : (rank = 0);
+      if (message.createdTimestamp - user[0].last_points_msg_time > 100) {
         points = user[0].points + 10;
         msgId = message.id;
         msgTime = message.createdTimestamp;
@@ -103,13 +115,15 @@ client.on("messageCreate", async (message) => {
       points = 10;
       msgId = message.id;
       msgTime = message.createdTimestamp;
+      rank = 0;
     }
     await set(
       message.author.id,
       message.author.username,
       points,
       msgId,
-      msgTime
+      msgTime,
+      rank
     );
   } catch (e) {
     console.log(e.message);

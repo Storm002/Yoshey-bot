@@ -1,14 +1,17 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { getById } = require("../../sql-db");
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("point")
-    .setDescription("Testing Points"),
+  data: new SlashCommandBuilder().setName("point").setDescription("Points"),
   async execute(interaction) {
     try {
       const res = await getById(interaction.user.id);
-      console.log("pp:", res[0].points);
-      return interaction.reply(`Pong! ${res[0].points} !!!!!!`);
+      if (res) {
+        return interaction.reply(
+          `The points you have ${res[0].points} ${res[0].rank} !!!!!!`
+        );
+      } else {
+        return interaction.reply(`The points you have 0 !!!!!!`);
+      }
     } catch (e) {
       console.log(e.message);
     }
