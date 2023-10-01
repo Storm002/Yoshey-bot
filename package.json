@@ -13,6 +13,8 @@
     "dependencies": {
         "@databases/sqlite": "^4.0.2",
         "discord.js": "^14.9.0",
-        "dotenv": "^16.0.3"
+        "dotenv": "^16.0.3",
+        "mongodb": "^6.1.0",
+        "mongoose": "^7.5.3"
     }
 }

@@ -1,12 +1,13 @@
 const { SlashCommandBuilder } = require("discord.js");
-const { getById } = require("../../sql-db");
+const User = require("../../db/user");
 module.exports = {
   data: new SlashCommandBuilder().setName("test").setDescription("Testing"),
   async execute(interaction) {
     try {
-      const res = await getById(interaction.user.id);
-      console.log("pp:", res[0].points);
-      return interaction.reply(`Pong! ${res[0].points} !!!!!!`);
+      const res = await User.findById(interaction.user.id);
+
+      console.log("pp:", res.points);
+      return interaction.reply(`Pong! ${res.points} !!!!!!`);
     } catch (e) {
       console.log(e.message);
     }

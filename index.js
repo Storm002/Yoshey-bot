@@ -2,10 +2,9 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { execute } = require(`./deploy-commands.js`);
 require("dotenv").config();
-const { getById, getAll, set, remove } = require("./sql-db.js");
+const dbConnect = require("./db/mongo-connect.js");
+const User = require("./db/user.js");
 
-const mongoUrl = `mongodb+srv://halfwatchesmom:${process.env.MONGO_PASW}@cluster0.wud6pmq.mongodb.net/`;
-console.log(mongoUrl);
 const {
   Client,
   Collection,
@@ -84,49 +83,60 @@ client.on(Events.InteractionCreate, async (interaction) => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return; // ignore bot messages
   if (message.content[0] === prefix) prefixMessageHandler(message);
+  // console.log("msg : ", message);
   let points;
   let msgId;
   let msgTime;
   let rank;
   try {
-    const user = await getById(message.author.id);
+    const user = await User.findById(message.author.id);
     if (user) {
-      console.log(message.createdTimestamp - user[0].last_points_msg_time);
-      console.log(user[0].points);
-      user[0].points >= 100 && user[0].points < 200
+      user.points >= 100 && user[0].points < 200
         ? (rank = 1)
-        : user[0].points >= 200 && user[0].points < 300
+        : user.points >= 200 && user.points < 300
         ? (rank = 2)
-        : user[0].points >= 300 && user[0].points < 400
+        : user.points >= 300 && user.points < 400
         ? (rank = 3)
-        : user[0].points >= 400 && user[0].points < 500
+        : user.points >= 400 && user.points < 500
         ? (rank = 4)
-        : user[0].points >= 500
+        : user.points >= 500
         ? (rank = 5)
         : (rank = 0);
-      if (message.createdTimestamp - user[0].last_points_msg_time > 100) {
-        points = user[0].points + 10;
+      if (message.createdTimestamp - user.last_points_msg_time > 10000) {
+        points = user.points + 10;
         msgId = message.id;
         msgTime = message.createdTimestamp;
       } else {
-        points = user[0].points;
-        msgId = user[0].last_points_msg_id;
-        msgTime = user[0].last_points_msg_time;
+        points = user.points;
+        msgId = user.last_points_msg_id;
+        msgTime = user.last_points_msg_time;
       }
+      await User.findByIdAndUpdate(user._id, {
+        _id: message.author.id,
+        user_name: message.author.username,
+        channel_id: message.channelId,
+        guild_id: message.guildId,
+        points: points,
+        last_points_msg_id: msgId,
+        last_points_msg_time: msgTime,
+        rank: rank,
+      });
     } else {
       points = 10;
       msgId = message.id;
       msgTime = message.createdTimestamp;
       rank = 0;
+      await User.create({
+        _id: message.author.id,
+        user_name: message.author.username,
+        channel_id: message.channelId,
+        guild_id: message.guildId,
+        points: points,
+        last_points_msg_id: msgId,
+        last_points_msg_time: msgTime,
+        rank: rank,
+      });
     }
-    await set(
-      message.author.id,
-      message.author.username,
-      points,
-      msgId,
-      msgTime,
-      rank
-    );
   } catch (e) {
     console.log(e.message);
   }
